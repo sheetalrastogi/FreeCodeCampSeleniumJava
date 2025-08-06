@@ -1071,4 +1071,424 @@ Second Largest Element in an Array without sorting
 Check if the array is sorted
 Largest Element in an Array
 
+#2.  Predicates:
+======================
 
+Common Functional Interfaces in Java
+=====================================
+
+Interface	Abstract Method	Description
+Predicate<T>	test(T t)	Returns boolean; often used for filtering.
+Function<T,R>	apply(T t)	Takes T and returns R; used for mapping.
+Consumer<T>	accept(T t)	Takes T, returns void; used for actions.
+Supplier<T>	get()	Returns T; used for supplying values.
+UnaryOperator<T>	apply(T t)	Like Function, but input and output types are same.
+BinaryOperator<T>	apply(T t1, T t2)	Like BiFunction, but both inputs and output are same type.
+BiPredicate<T,U>	test(T t, U u)	Like Predicate, but takes two arguments.
+BiFunction<T,U,R>	apply(T t, U u)	Takes two arguments, returns a result.
+BiConsumer<T,U>	accept(T t, U u)	Takes two arguments, returns void.
+
+
+Predicate<String> isEmpty = s -> s.isEmpty();
+Function<Integer, String> intToString = i -> String.valueOf(i);
+Consumer<String> printer = s -> System.out.println(s);
+Supplier<Double> randomSupplier = () -> Math.random();
+UnaryOperator<Integer> square = x -> x * x;
+BinaryOperator<Integer> sum = (a, b) -> a + b;
+
+
+----------------------------------------------------------------------
+Predicate<Integer> noGreaterThan5 =  x -> x > 5;
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        List<Integer> collect = list.stream()
+                .filter(noGreaterThan5)
+                .collect(Collectors.toList());
+
+        System.out.println(collect); // [6, 7, 8, 9, 10]
+----------------------------------------------------------------------
+
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        // multiple filters
+        List<Integer> collect = list.stream().filter(x -> x > 5 && x < 8).collect(Collectors.toList());
+----------------------------------------------------------------------
+
+        Predicate<Integer> noGreaterThan5 = x -> x > 5;
+        Predicate<Integer> noLessThan8 = x -> x < 8;
+
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        List<Integer> collect = list.stream()
+                .filter(noGreaterThan5.and(noLessThan8))
+                .collect(Collectors.toList());
+
+----------------------------------------------------------------------
+
+        Predicate<String> lengthIs3 = x -> x.length() == 3;
+        Predicate<String> startWithA = x -> x.startsWith("A");
+
+        List<String> list = Arrays.asList("A", "AA", "AAA", "B", "BB", "BBB");
+
+        List<String> collect = list.stream()
+                .filter(lengthIs3.or(startWithA))
+                .collect(Collectors.toList());
+
+----------------------------------------------------------------------
+
+        Predicate<String> startWithA = x -> x.startsWith("A");
+
+        List<String> list = Arrays.asList("A", "AA", "AAA", "B", "BB", "BBB");
+
+        List<String> collect = list.stream()
+                .filter(startWithA.negate())
+                .collect(Collectors.toList());
+
+----------------------------------------------------------------------
+        List<String> lines = Arrays.asList("spring", "node", "mkyong");
+
+        List<String> result = lines.stream()                // convert list to stream
+                .filter(line -> !"mkyong".equals(line))     // we dont like mkyong
+                .collect(Collectors.toList());              // collect the output and convert streams to a List
+
+        result.forEach(System.out::println);                //output : spring, node
+
+----------------------------------------------------------------------
+
+public class Person {
+
+    private String name;
+    private int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    //gettersm setters, toString
+}
+
+
+
+        List<Person> persons = Arrays.asList(
+                new Person("mkyong", 30),
+                new Person("jack", 20),
+                new Person("lawrence", 40)
+        );
+
+        Person result1 = persons.stream()                        // Convert to steam
+                .filter(x -> "jack".equals(x.getName()))        // we want "jack" only
+                .findAny()                                      // If 'findAny' then return found
+                .orElse(null);                                  // If not found, return null
+
+        System.out.println(result1);
+
+----------------------------------------------------------------------
+
+Combining Predicates:
+
+        List<Person> persons = Arrays.asList(
+                new Person("mkyong", 30),
+                new Person("jack", 20),
+                new Person("lawrence", 40)
+        );
+
+        Person result1 = persons.stream()
+                .filter((p) -> "jack".equals(p.getName()) && 20 == p.getAge())
+                .findAny()
+                .orElse(null);
+
+        System.out.println("result 1 :" + result1);
+
+----------------------------------------------------------------------
+
+map in Predicates:
+
+        List<Person> persons = Arrays.asList(
+                new Person("mkyong", 30),
+                new Person("jack", 20),
+                new Person("lawrence", 40)
+        );
+
+        String name = persons.stream()
+                .filter(x -> "jack".equals(x.getName()))
+                .map(Person::getName)                        //convert stream to String
+                .findAny()
+                .orElse("");
+
+        System.out.println("name : " + name);
+
+----------------------------------------------------------------------
+
+List<Integer> transactionsIds = 
+    transactions.stream()
+                .filter(t -> t.getType() == Transaction.GROCERY)
+                .sorted(comparing(Transaction::getValue).reversed())
+                .map(Transaction::getId)
+                .collect(toList());
+
+----------------------------------------------------------------------
+
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8);
+List<Integer> twoEvenSquares = 
+    numbers.stream()
+           .filter(n -> {
+                    System.out.println("filtering " + n); 
+                    return n % 2 == 0;
+                  })
+           .map(n -> {
+                    System.out.println("mapping " + n);
+                    return n * n;
+                  })
+           .limit(2)
+           .collect(toList());
+
+
+----------------------------------------------------------------------
+List<String> words = Arrays.asList("Oracle", "Java", "Magazine");
+ List<Integer> wordLengths = 
+    words.stream()
+         .map(String::length)
+         .collect(toList());
+
+----------------------------------------------------------------------
+
+enum Gender {
+    FEMALE,
+    MALE
+}
+
+static class User {
+    Gender gender;
+    int age;
+
+    public User(Gender gender, int age){
+        this.gender = gender;
+        this.age = age;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+
+static long test1(List<User> users){
+    long time1 = System.currentTimeMillis();
+    users.stream()
+            .filter((u) -> u.getGender() == Gender.FEMALE && u.getAge() % 2 == 0)
+            .allMatch(u -> true);                   // least overhead terminal function I can think of
+    long time2 = System.currentTimeMillis();
+    return time2 - time1;
+}
+
+static long test2(List<User> users){
+    long time1 = System.currentTimeMillis();
+    users.stream()
+            .filter(u -> u.getGender() == Gender.FEMALE)
+            .filter(u -> u.getAge() % 2 == 0)
+            .allMatch(u -> true);                   // least overhead terminal function I can think of
+    long time2 = System.currentTimeMillis();
+    return time2 - time1;
+}
+
+static long test3(List<User> users){
+    long time1 = System.currentTimeMillis();
+    users.stream()
+            .filter(((Predicate<User>) u -> u.getGender() == Gender.FEMALE).and(u -> u.getAge() % 2 == 0))
+            .allMatch(u -> true);                   // least overhead terminal function I can think of
+    long time2 = System.currentTimeMillis();
+    return time2 - time1;
+}
+
+public static void main(String... args) {
+    int size = 10000000;
+    List<User> users =
+    IntStream.range(0,size)
+            .mapToObj(i -> i % 2 == 0 ? new User(Gender.MALE, i % 100) : new User(Gender.FEMALE, i % 100))
+            .collect(Collectors.toCollection(()->new ArrayList<>(size)));
+    repeat("one filter with predicate of form u -> exp1 && exp2", users, Temp::test1, 100);
+    repeat("two filters with predicates of form u -> exp1", users, Temp::test2, 100);
+    repeat("one filter with predicate of form predOne.and(pred2)", users, Temp::test3, 100);
+}
+
+private static void repeat(String name, List<User> users, ToLongFunction<List<User>> test, int iterations) {
+    System.out.println(name + ", list size " + users.size() + ", averaged over " + iterations + " runs: " + IntStream.range(0, iterations)
+            .mapToLong(i -> test.applyAsLong(users))
+            .summaryStatistics());
+}
+----------------------------------------------------------------------
+String auth = cookies.stream()
+            .filter(c -> c.getName().equals("auth"))
+            .map(Cookie::getValue)
+            .findAny().orElse("");
+
+----------------------------------------------------------------------
+The map operations allows us to apply a function, that takes in a parameter of one type, and returns something else. 
+
+eg. 
+Stream students = persons.stream()
+      .filter(p -> p.getAge() > 18)
+      .map(new Function<Person, Student>() {
+                  @Override
+                  public Student apply(Person person) {
+                     return new Student(person);
+                  }
+              });
+
+----------------------------------------------------------------------
+List<Students> students = persons.stream()
+        .filter(p -> p.getAge() > 18)
+        .map(Student::new)
+        .collect(Collectors.toList());
+
+OR
+
+List<Students> students = persons.stream()
+        .filter(p -> p.getAge() > 18)
+        .map(Student::new)
+        .collect(Collectors.toCollection(ArrayList::new));
+
+----------------------------------------------------------------------
+
+import java.util.List;
+  import java.util.function.Predicate;
+
+  public class PredicateExample {
+      public static void main(String[] args) {
+          List<Integer> ages = List.of(17, 18, 19, 28, 18, 28, 46, 7, 8, 9, 21, 12);
+          NotLessThan18<Integer> isAdult = new NotLessThan18<>();
+          ages.stream().filter(isAdult).forEach(System.out::println);
+      }
+  }
+
+
+
+class NotLessThan18<E> implements Predicate<Integer> {
+
+      @Override
+      public boolean test(Integer v) {
+          Integer ADULT = 18;
+          return v >= ADULT;
+      }
+  }
+
+----------------------------------------------------------------------
+
+       int[] ages = { 18, 28, 18, 46, 90, 45, 2, 3, 1, 5, 7, 21, 12 };
+
+       IntPredicate p = n -> n >= 18;
+
+       Arrays.stream(ages).filter(p).forEach(System.out::println);
+
+----------------------------------------------------------------------
+
+    Predicate<String> predicate1 =  str -> str.startsWith("J");
+    Predicate<String> predicate2 =  str -> str.length() < 4;
+    
+    List<String> result = names.stream()
+      .filter(predicate1.or(predicate2.negate()))
+      .collect(Collectors.toList());
+    
+    assertEquals(3, result.size());
+    assertThat(result, contains("Adam","Alexander","John"));
+
+----------------------------------------------------------------------
+
+Combine Predicates Inline
+
+We don’t need to explicitly define our Predicates to use and(),  or(), and negate().
+
+We can also use them inline by casting the Predicate:
+
+@Test
+public void whenFilterListWithCombinedPredicatesInline_thenSuccess(){
+    List<String> result = names.stream()
+      .filter(((Predicate<String>)name -> name.startsWith("A"))
+      .and(name -> name.length()<5))
+      .collect(Collectors.toList());
+
+    assertEquals(1, result.size());
+    assertThat(result, contains("Adam"));
+}
+
+----------------------------------------------------------------------
+
+@Test
+public void whenFilterListWithCollectionOfPredicatesUsingAnd_thenSuccess(){
+    List<Predicate<String>> allPredicates = new ArrayList<Predicate<String>>();
+    allPredicates.add(str -> str.startsWith("A"));
+    allPredicates.add(str -> str.contains("d"));        
+    allPredicates.add(str -> str.length() > 4);
+    
+    List<String> result = names.stream()
+      .filter(allPredicates.stream().reduce(x->true, Predicate::and))
+      .collect(Collectors.toList());
+    
+    assertEquals(1, result.size());
+    assertThat(result, contains("Alexander"));
+}
+
+OR
+
+@Test
+public void whenFilterListWithCollectionOfPredicatesUsingOr_thenSuccess(){
+    List<String> result = names.stream()
+      .filter(allPredicates.stream().reduce(x->false, Predicate::or))
+      .collect(Collectors.toList());
+    
+    assertEquals(2, result.size());
+    assertThat(result, contains("Adam","Alexander"));
+}
+----------------------------------------------------------------------
+
+import java.util.function.Predicate;
+
+class User {
+    String name;
+    User(String name) { this.name = name; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return name.equals(user.name);
+    }
+}
+
+public class IsEqualCustomObjectExample {
+    public static void main(String[] args) {
+        User targetUser = new User("Alice");
+        Predicate<User> isAlice = Predicate.isEqual(targetUser);
+
+        System.out.println(isAlice.test(new User("Alice"))); // true
+        System.out.println(isAlice.test(new User("Bob")));   // false
+    }
+}
+
+
+----------------------------------------------------------------------
+
+JVM Arguments:
+
+#1. How to determine the amount of memory your application requires? The easiest method is to activate the GC logging in JVM parameters by running
+
+	-verbose:gc -XX:+PrintGCDetails
+
+This way, before the application exits, the total and used memory values will be printed in the console.
+
+
+
+----------------------------------------------------------------------
